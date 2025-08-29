@@ -1,0 +1,14 @@
+[
+  {
+    "Ticker":"RELIANCE.NS",
+    "Sector":"Energy",
+    "Industry":"Oil & Gas Refining & Marketing",
+    "WeeklyReturnPct":-0.0936095033
+  },
+  {
+    "Ticker":"TCS.NS",
+    "Sector":"Technology",
+    "Industry":"Information Technology Services",
+    "WeeklyReturnPct":-0.1226138645
+  }
+]
