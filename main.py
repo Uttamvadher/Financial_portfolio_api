@@ -6,7 +6,9 @@ from storage import save_to_sql, save_to_json, save_to_mongo
 from reports import generate_portfolio_report, load_week_from_sql, compute_weekly_returns
 from analysis import print_sector_breakdown, print_top_movers
 from charts import plot_daily_charts, plot_weekly_charts
-from fastapi.middleware.cors import CORSMiddleware 
+from fastapi.middleware.cors import CORSMiddleware
+from apscheduler.schedulers.background import BackgroundScheduler
+import datetime as dt
 
 
 
@@ -57,6 +59,34 @@ def weekly_report():
     weekly = compute_weekly_returns(week_df)
     plot_weekly_charts(weekly)
     return {"weekly_returns": weekly.to_dict(orient="records")}
+
+def run_daily_report():
+    print(f"[{dt.datetime.now()}] Running daily scheduled report...")
+    portfolio = load_portfolio_from_sql()  
+    df = get_stock_info(portfolio)
+    merged, summary = generate_portfolio_report(df, portfolio)
+    plot_daily_charts(df)
+    print("Daily report generated:", summary)
+
+
+def run_weekly_report():
+    print(f"[{dt.datetime.now()}] Running weekly scheduled report...")
+    week_df = load_week_from_sql()
+    weekly = compute_weekly_returns(week_df)
+    plot_weekly_charts(weekly)
+    print("Weekly report generated.")
+
+
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(run_daily_report, "cron", day_of_week="mon-fri", hour=16, minute=0)
+scheduler.add_job(run_weekly_report, "cron", day_of_week="fri", hour=16, minute=0)
+scheduler.start()
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    scheduler.shutdown()
 
 
 @app.post("/analysis/sector")
